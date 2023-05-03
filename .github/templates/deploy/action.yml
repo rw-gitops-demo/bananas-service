@@ -1,0 +1,45 @@
+name: deploy
+description: Deploy action
+
+inputs:
+  env:
+    description: The environment alias, e.g. dev, prod
+    required: true
+  aws-account-id:
+    description: The AWS account ID for the EKS cluster
+    required: true
+  aws-region:
+    description: The AWS region for the EKS cluster
+    required: true
+  kubeconfig:
+    description: The Kube config for the EKS cluster
+    required: true
+  registry:
+    description: The Docker image registry
+    required: true
+  image-name:
+    description: The Docker image name
+    required: true
+  tag-name:
+    description: The Docker image tag name
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: arn:aws:iam::${{ inputs.aws-account-id }}:role/github-actions-role
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Kustomize deploy
+      uses: jacobsvante/kustomize-deploy-action@v0.1.0
+      with:
+        kubeconfig: ${{ inputs.kubeconfig }}
+        kustomization-base-dir: kustomize/base
+        kustomization-dir: kustomize/envs/${{ inputs.env }}
+        docker-server: ${{ inputs.registry }}
+        docker-repo: ${{ inputs.image-name }}
+        docker-tag: ${{ inputs.image-tag }}

@@ -1,0 +1,9 @@
+version: "3"
+services:
+  bananas-service:
+    build: .
+    image: bananas-service:1.0.0
+    ports:
+      - "3001:3000"
+    environment:
+      - COLOUR=green
